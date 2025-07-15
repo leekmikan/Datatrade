@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>履修登録システム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f8f8f8;
+      padding: 20px;
+    }
+    h1, h3 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: center;
+      vertical-align: top;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
+    input[type="text"], select {
+      padding: 5px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 8px 16px;
+    }
+    #taskList {
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    #taskList ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #taskList li {
+      background: #fffbe6;
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    #subjectList {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e9f5ff;
+      border: 1px solid #99c2ff;
+    }
+  </style>
+</head>
+<body>
+
+<h1>履修登録システム</h1>
+
+<form onsubmit="registerSubject(); return false;">
+  <h3>学生ID</h3>
+  <input type="text" name="id_number" required>
+
+  <h3>学期選択</h3>
+  <label><input type="radio" name="season" value="spring" checked onclick="setSemester('spring')"> 春学期</label>
+  <label><input type="radio" name="season" value="autumn" onclick="setSemester('autumn')"> 秋学期</label>
+
+  <h3>曜日・時限選択</h3>
+  <select id="day" onchange="updateSubjects()">
+    <option value="mon">月</option>
+    <option value="tue">火</option>
+    <option value="wed">水</option>
+    <option value="thu">木</option>
+    <option value="fri">金</option>
+	<option value="sat">土</option>
+  </select>
+  <select id="period" onchange="updateSubjects()">
+    <option value="1">1限</option>
+    <option value="2">2限</option>
+    <option value="3">3限</option>
+    <option value="4">4限</option>
+    <option value="5">5限</option>
+    <option value="6">6限</option>
+  </select>
+
+  <h3>学部・学科選択</h3>
+  <select id="faculty" onchange="updateDepartments()"> <!--関数名修正-->
+    <option value="情報理工">情報理工</option>
+    <option value="理">理</option>
+    <option value="工">工</option>
+  </select>
+  <select id="department" onchange="updateSubjects()">
+    <option value="情報科学科">情報科学科</option>
+    <option value="コンピュータ応用工学科">コンピュータ応用工学科</option>
+    <option value="情報メディア学科">情報メディア学科</option>
+  </select>
+
+  <div id="subjectList">
+    <strong>選択可能な科目:</strong>
+    <ul id="availableSubjects"></ul>
+  </div>
+
+  <h3>科目名・シラバス番号</h3>
+  <input type="text" id="subjectName" placeholder="例: プログラミング基礎">
+  <input type="text" id="syllabusCode" placeholder="例: INF101">
+
+  <h3>課題（ある場合のみ）</h3>
+  <input type="text" id="task" placeholder="例: レポート提出">
+
+  <br><br>
+  <button type="submit">時間割に登録</button>
+</form>
+
+<h3 id="semesterTitle">春学期時間割</h3>
+<table>
+  <thead>
+    <tr>
+      <th>時限＼曜日</th>
+      <th>月</th>
+      <th>火</th>
+      <th>水</th>
+      <th>木</th>
+      <th>金</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- 1〜6限 × 月〜金 -->
+    <!-- 春 -->
+    <tr><th>1限</th><td id="spring_mon1"></td><td id="spring_tue1"></td><td id="spring_wed1"></td><td id="spring_thu1"></td><td id="spring_fri1"></td></tr>
+    <tr><th>2限</th><td id="spring_mon2"></td><td id="spring_tue2"></td><td id="spring_wed2"></td><td id="spring_thu2"></td><td id="spring_fri2"></td></tr>
+    <tr><th>3限</th><td id="spring_mon3"></td><td id="spring_tue3"></td><td id="spring_wed3"></td><td id="spring_thu3"></td><td id="spring_fri3"></td></tr>
+    <tr><th>4限</th><td id="spring_mon4"></td><td id="spring_tue4"></td><td id="spring_wed4"></td><td id="spring_thu4"></td><td id="spring_fri4"></td></tr>
+    <tr><th>5限</th><td id="spring_mon5"></td><td id="spring_tue5"></td><td id="spring_wed5"></td><td id="spring_thu5"></td><td id="spring_fri5"></td></tr>
+    <tr><th>6限</th><td id="spring_mon6"></td><td id="spring_tue6"></td><td id="spring_wed6"></td><td id="spring_thu6"></td><td id="spring_fri6"></td></tr>
+  </tbody>
+  <tbody style="display:none" id="autumnSchedule">
+    <tr><th>1限</th><td id="autumn_mon1"></td><td id="autumn_tue1"></td><td id="autumn_wed1"></td><td id="autumn_thu1"></td><td id="autumn_fri1"></td></tr>
+    <tr><th>2限</th><td id="autumn_mon2"></td><td id="autumn_tue2"></td><td id="autumn_wed2"></td><td id="autumn_thu2"></td><td id="autumn_fri2"></td></tr>
+    <tr><th>3限</th><td id="autumn_mon3"></td><td id="autumn_tue3"></td><td id="autumn_wed3"></td><td id="autumn_thu3"></td><td id="autumn_fri3"></td></tr>
+    <tr><th>4限</th><td id="autumn_mon4"></td><td id="autumn_tue4"></td><td id="autumn_wed4"></td><td id="autumn_thu4"></td><td id="autumn_fri4"></td></tr>
+    <tr><th>5限</th><td id="autumn_mon5"></td><td id="autumn_tue5"></td><td id="autumn_wed5"></td><td id="autumn_thu5"></td><td id="autumn_fri5"></td></tr>
+    <tr><th>6限</th><td id="autumn_mon6"></td><td id="autumn_tue6"></td><td id="autumn_wed6"></td><td id="autumn_thu6"></td><td id="autumn_fri6"></td></tr>
+  </tbody>
+</table>
+
+<div id="taskList">
+  <h3>登録された課題一覧</h3>
+  <ul id="taskItems"></ul>
+</div>
+
+<script>
+  const allsubjects = [
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "社会言語学Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "中国語初級１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "フランス語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "スペイン語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "スペイン語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "スペイン語初級２A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "実践日本語１－１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "実践日本語２－１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "実践日本語３－１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "実践日本語４A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "データベース" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "健康スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "健康スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "社会言語学" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "中国語入門１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "中国語初級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "フランス語入門１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "韓国語入門１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "韓国語入門２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "ロシア語入門１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "スペイン語入門１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "スペイン語入門２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "スペイン語初級２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "パブリック・スキルＢ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "データベース開発" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "物理実験" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "コンピュータビジョン" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "基礎化学" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "基礎英語A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "基礎英語B" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "基礎英文法B" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "基礎英会話B" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "英語検定２級" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "ＴＯＥＩＣ（Ｒ）初級A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "ＴＯＥＩＣ（Ｒ）中級A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "中国語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "フランス語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "フランス語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "フランス語会話初級１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "ドイツ語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "韓国語初級１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "ロシア語講読中級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "スペイン語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "スペイン語入門１B" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "スペイン語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "アカデミックジャパニーズ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "日本語授業研究" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "実践日本語１－２A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "日本語読解・作文２A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "日本語聴解３－１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "社会情報実践" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "アイデンティティと共生" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "社会的課題の理解と探究Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "社会参加の方法と実践Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "現代文明論１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "英語リーディング＆ライティング２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "現代文明論" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "健康スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "健康スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "パブリック・ワークＡ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "パブリック・ワークＡ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "コーチング実践A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "プログラミング基礎Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "データサイエンス入門" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "ビジネスＩＴ入門" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "ディジタルパブリッシング" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "情報サービス論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "特別活動論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "特別活動論" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "情報サービス論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "物理学Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "卒業研究１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "職業指導" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "物理学" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "ロシア語入門２Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "スペイン語上級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "グローバルスキル" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "ロシア語入門２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "スペイン語上級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "図書館情報技術論" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "教育課程論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "教育課程論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "図書館情報技術論" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "電気電子工学概論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "電子回路" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "基礎制御理論" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "環境情報科学" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "電気電子工学概論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "電子回路" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "メディア数学Ｃ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "プレゼンテーション" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "英語スタディスキル" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "中国語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "中国語初級１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "中国語講読読初級1" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "フランス語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "フランス語初級１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "フランス語会話中級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "ドイツ語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "ドイツ語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "ドイツ語会話初級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "ドイツ語講読中級１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "スペイン語圏地域基礎論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "スペイン語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "スペイン語検定１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "タイ語入門1A" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "社会情報概論" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "人工知能" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "プログラミング基礎" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "フィットネス１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "フィットネス２" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "フィットネス３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "フィットネス４" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "情報システム入門Ａ" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "プログラミング基礎" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "ＷＥＢクリエイション入門" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "ＷＥＢクリエイション" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 4 , "subject": "ビジネスＩＴ基礎Ａ" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 1 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 2 , "subject": "健康スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 2 , "period": 3 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 2 , "period": 4 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 1 , "subject": "健康スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 2 , "subject": "フィットネス１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 3 , "period": 3 , "subject": "フィットネス２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 3 , "period": 4 , "subject": "フィットネス３" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 1 , "subject": "フィットネス４" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 3 , "subject": "グローバルスキル" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 4 , "period": 4 , "subject": "英語スタディスキル" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 1 , "subject": "中国語入門１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 2 , "subject": "中国語入門２" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 5 , "period": 3 , "subject": "中国語初級１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 5 , "period": 4 , "subject": "中国語講読初級１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 1 , "subject": "フランス語入門１" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 2 , "subject": "フランス語初級１" },
+	{ "term": "F" , "school": 0, "dep": 1 , "day": 6 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 1 , "day": 6 , "period": 4 , "subject": "物理実験" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "実践日本語１－２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "ドイツ語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "スペイン語検定１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "ディジタルパブリッシング" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "スペイン語初級２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "タイ語入門1A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "中国語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "情報システム入門Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "フランス語会話中級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "日本国憲法" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "ビジネスＩＴ基礎Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "英語スタディスキル" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "実践日本語３－１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "構造と変化" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "中国語初級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "フランス語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "ＴＯＥＩＣ（Ｒ）中級A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "メディア数学Ｃ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "社会情報概論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "フランス語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "スペイン語入門１B" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "社会的課題の理解と探究Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "ドイツ語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "韓国語初級１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "基礎英語B" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "環境情報科学" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "データサイエンス入門" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "職業指導" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "物理実験" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "プログラミング基礎" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "図書館情報技術論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "中国語講読初級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "物理実験" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "ドイツ語講読中級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "実践日本語４A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "図書館情報技術論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "フィットネス３" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "基礎英会話B" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "ドイツ語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "スペイン語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "グローバルスキル" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "基礎制御理論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "スペイン語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "中国語入門１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "電子回路" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "電気電子工学概論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "基礎化学" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "現代文明論１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "ロシア語入門２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "データベース" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "卒業研究１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "電気電子工学概論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "人工知能" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "ＴＯＥＩＣ（Ｒ）初級A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "フランス語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "プレゼンテーション" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "スペイン語圏地域基礎論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "フィットネス３" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "スペイン語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "パブリック・ワークＡ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "社会言語学" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "中国語入門１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "韓国語入門２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "フランス語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "韓国語入門１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "フランス語入門１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "ロシア語入門２Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "フランス語入門１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "物理学" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "社会言語学Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "パブリック・ワークＡ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "スペイン語入門１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "コーチング実践A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "電子回路" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "プログラミング基礎Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "実践日本語１－１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "スペイン語入門２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "中国語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "英語スタディスキル" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "健康スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "中国語初級１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "基礎英文法B" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "情報サービス論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "物理学Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "アイデンティティと共生" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "健康スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "フランス語初級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "健康スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "ビジネスＩＴ入門" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "アカデミックジャパニーズ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "日本語聴解３－１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "ロシア語講読中級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "中国語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "英語検定２級" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "スペイン語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "フランス語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "現代文明論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "日本語読解・作文２A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "ロシア語入門１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "フィットネス４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "フランス語会話初級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "スペイン語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "情報サービス論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "フィットネス１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "フィットネス２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "フィットネス４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "フィットネス２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "コンピュータビジョン" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "ＷＥＢクリエイション" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "フィットネス１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "データベース開発" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "中国語入門２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "日本語授業研究" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "韓国語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "健康スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "教育課程論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "健康スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 1 , "subject": "特別活動論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 2 , "subject": "プログラミング基礎" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 1 , "period": 3 , "subject": "社会参加の方法と実践Ａ" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 1 , "period": 4 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 1 , "subject": "スペイン語上級１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 2 , "subject": "特別活動論" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 2 , "period": 3 , "subject": "社会情報実践" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 2 , "period": 4 , "subject": "スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 1 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 2 , "subject": "ドイツ語会話初級１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 3 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 3 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 1 , "subject": "中国語講読読初級1" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 4 , "period": 3 , "subject": "教育課程論" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 4 , "period": 4 , "subject": "スペイン語上級１" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 1 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 2 , "subject": "パブリック・スキルＢ" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 5 , "period": 3 , "subject": "グローバルスキル" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 5 , "period": 4 , "subject": "基礎英語A" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 1 , "subject": "実践日本語２－１A" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 2 , "subject": "ＷＥＢクリエイション入門" },
+	{ "term": "F" , "school": 0, "dep": 2 , "day": 6 , "period": 3 , "subject": "スペイン語初級２" },
+	{ "term": "S" , "school": 0, "dep": 2 , "day": 6 , "period": 4 , "subject": "中国語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "実践日本語１－２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "ドイツ語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "スペイン語検定１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "ディジタルパブリッシング" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "スペイン語初級２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "タイ語入門1A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "中国語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "情報システム入門Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "フランス語会話中級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "日本国憲法" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "ビジネスＩＴ基礎Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "英語スタディスキル" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "実践日本語３－１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "構造と変化" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "中国語初級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "フランス語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "ＴＯＥＩＣ（Ｒ）中級A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "メディア数学Ｃ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "社会情報概論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "フランス語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "健康スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "スペイン語入門１B" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "社会的課題の理解と探究Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "ドイツ語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "韓国語初級１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "基礎英語B" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "環境情報科学" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "データサイエンス入門" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "職業指導" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "物理実験" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "プログラミング基礎" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "図書館情報技術論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "中国語講読初級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "物理実験" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "ドイツ語講読中級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "実践日本語４A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "図書館情報技術論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "フィットネス３" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "基礎英会話B" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "ドイツ語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "スペイン語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "グローバルスキル" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "基礎制御理論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "スペイン語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "中国語入門１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "電子回路" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "電気電子工学概論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "基礎化学" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "現代文明論１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "ロシア語入門２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "データベース" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "卒業研究１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "電気電子工学概論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "人工知能" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "ＴＯＥＩＣ（Ｒ）初級A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "フランス語入門１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "プレゼンテーション" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "韓国語入門２Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "スペイン語圏地域基礎論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "フィットネス３" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "スペイン語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "パブリック・ワークＡ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "社会言語学" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "中国語入門１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "韓国語入門２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "フランス語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "健康スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "韓国語入門１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "フランス語入門１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "ロシア語入門２Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "フランス語入門１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "物理学" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "社会言語学Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "パブリック・ワークＡ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "スペイン語入門１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "コーチング実践A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "電子回路" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "プログラミング基礎Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "実践日本語１－１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "スペイン語入門２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "中国語初級１A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "英語スタディスキル" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "健康スポーツ４" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "中国語初級１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "英語リーディング＆ライティング１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "基礎英文法B" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "情報サービス論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "物理学Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "アイデンティティと共生" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "生涯スポーツ理論実習" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "健康スポーツ３" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "フランス語初級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "健康スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "ビジネスＩＴ入門" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "アカデミックジャパニーズ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "日本語聴解３－１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "ロシア語講読中級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "中国語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "日本国憲法" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "英語検定２級" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "英語リーディング＆ライティング" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "スポーツ３" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "スペイン語入門２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "フランス語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "現代文明論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "日本語読解・作文２A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "ロシア語入門１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "フィットネス４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "フランス語会話初級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "スペイン語入門２A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "情報サービス論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "フィットネス１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "フィットネス２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "フィットネス４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "フィットネス２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "コンピュータビジョン" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "ＷＥＢクリエイション" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "フィットネス１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "データベース開発" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "構造と変化" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "中国語入門２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "日本語授業研究" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "英語リスニング＆スピーキング２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "韓国語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "韓国語入門１Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "ロシア語入門１Ａ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "健康スポーツ２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "教育課程論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "健康スポーツ４" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 1 , "subject": "特別活動論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 2 , "subject": "プログラミング基礎" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 1 , "period": 3 , "subject": "社会参加の方法と実践Ａ" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 1 , "period": 4 , "subject": "社会参加の方法と実践Ｂ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 1 , "subject": "スペイン語上級１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 2 , "subject": "特別活動論" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 2 , "period": 3 , "subject": "社会情報実践" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 2 , "period": 4 , "subject": "スポーツ２" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 1 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 2 , "subject": "ドイツ語会話初級１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 3 , "period": 3 , "subject": "スポーツ１" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 3 , "period": 4 , "subject": "健康スポーツ１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 1 , "subject": "中国語講読読初級1" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 2 , "subject": "英語リスニング＆スピーキング" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 4 , "period": 3 , "subject": "教育課程論" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 4 , "period": 4 , "subject": "スペイン語上級１" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 1 , "subject": "中国語入門１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 2 , "subject": "パブリック・スキルＢ" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 5 , "period": 3 , "subject": "グローバルスキル" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 5 , "period": 4 , "subject": "基礎英語A" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 1 , "subject": "実践日本語２－１A" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 2 , "subject": "ＷＥＢクリエイション入門" },
+	{ "term": "F" , "school": 0, "dep": 0 , "day": 6 , "period": 3 , "subject": "スペイン語初級２" },
+	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "中国語入門１A" }
+]
+
+
+  //これいらない
+  const subjectData = {
+    "情報理工": {
+      "情報科学科": ["プログラミング基礎", "データ構造", "アルゴリズム"],
+      "コンピュータ応用工学科": ["回路設計", "マイコン制御", "組込みC言語"],
+      "情報メディア学科": ["Webデザイン", "映像処理", "CG基礎"]
+    },
+    "理": {
+      "物理学科": ["数学基礎", "統計入門"],
+      "コンピュータ応用工学科": ["物理学A", "力学"],
+      "情報メディア学科": ["メディア論", "画像認識"]
+    },
+    "工": {
+      "情報科学科": ["電気回路", "電子工学"],
+      "コンピュータ応用工学科": ["機械制御", "ロボット工学"],
+      "情報メディア学科": ["UXデザイン", "VR基礎"]
+    }
+  };
+
+  const springSubjects = {
+    mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
+    mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
+    mon4: { name: "プレゼンテーション", code: "JJG012" },
+    mon6: { name: "現代文明論", code: "BBA170" },
+    tue2: { name: "メディア数学C", code: "JJG011" },
+    tue3: { name: "メディアプログラミング2B", code: "JJG015" },
+    tue4: { name: "メディアコンテンツ基本講義・演習B", code: "JJG018" },
+    fri2: { name: "メディアコンテンツ基本講義・演習A", code: "JJG022" },
+    fri3: { name: "メディアプログラミング2A", code: "JJG014" },
+    fri4: { name: "社会情報概論", code: "AAM008" }
+  };
+
+
+  //中身は変えて
+  const autumnSubjects = {
+    mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
+    mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
+    mon4: { name: "プレゼンテーション", code: "JJG012" },
+    mon6: { name: "現代文明論", code: "BBA170" },
+    tue2: { name: "メディア数学C", code: "JJG011" },
+    tue3: { name: "メディアプログラミング2B", code: "JJG015" },
+    tue4: { name: "メディアコンテンツ基本講義・演習B", code: "JJG018" },
+    wed2: { name: "メディアコンテンツ基本講義・演習A", code: "JJG022" },
+    thu3: { name: "aaaaaaaa", code: "JJG014" },
+    fri4: { name: "社会情報概論", code: "AAM008" }
+  };
+
+  //↓3つ追加
+  const school_code = {
+	"情報理工": 0,
+    "理": 1,
+    "工": 2,
+  }
+  const dep_code = {
+	"情報科学科": 0,
+    "コンピュータ応用工学科": 1,
+    "情報メディア学科": 2,
+  }
+  const day_code = {
+	"mon": 1,
+    "tue": 2,
+    "wed": 3,
+	"thu": 4,
+    "fri": 5,
+    "sat": 6,
+  }
+  const season_code = {
+	"spring" : "S",
+	"autumn" : "F",
+  }
+
+  window.onload = () => {
+    setSemester('spring');
+    updateSubjects();
+  };
+  function updateSubjects() {
+    const faculty = document.getElementById("faculty").value;
+	const day = document.getElementById("day").value;
+	const season = (document.getElementsByName("season")[0].checked) ? "S" : "F";
+	const period = document.getElementById("period").value;
+    const department = document.getElementById("department").value;
+    const subjectList = document.getElementById("availableSubjects");
+    subjectList.innerHTML = "";
+	for(let sub of allsubjects){
+		if(school_code[faculty] != 0) break;
+		if(sub["term"] == season && sub["school"] == school_code[faculty] && sub["dep"] == dep_code[department] && sub["day"] == day_code[day] && sub["period"] == Number(period)){
+			const li = document.createElement("li");
+        	li.textContent = sub["subject"];
+        	subjectList.appendChild(li);
+		}
+	}
+	/* ここいらない
+    if (subjectData[school_code[faculty]] && subjectData[faculty][department]) {
+      subjectData[faculty][department].forEach(sub => {
+        const li = document.createElement("li");
+        li.textContent = sub;
+        subjectList.appendChild(li);
+      });
+    }
+	*/
+  }
+  const facultyDepartments = {
+  "情報理工": ["情報科学科", "コンピュータ応用工学科", "情報メディア学科"],
+  "理": ["物理学科", "数学科", "情報数理", "化学"],
+  "工": ["機械システム学科", "生物工学科", "医工学科", "応用化学科", "電気電子学科", "機械工学科", "航空宇宙学科"]
+};
+function updateDepartments() {
+  const faculty = document.getElementById("faculty").value;
+  const departmentSelect = document.getElementById("department");
+  departmentSelect.innerHTML = "";
+  facultyDepartments[faculty].forEach(dep => {
+    const option = document.createElement("option");
+    option.value = dep;
+    option.textContent = dep;
+    departmentSelect.appendChild(option);
+  });
+
+  updateSubjects();
+}
+
+  function registerSubject() {
+    const day = document.getElementById("day").value;
+    const period = document.getElementById("period").value;
+    const subject = document.getElementById("subjectName").value;
+    const code = document.getElementById("syllabusCode").value;
+    const task = document.getElementById("task").value;
+    const season = document.querySelector('input[name="season"]:checked').value;
+
+    const cell = document.getElementById(`${season}_${day}${period}`);
+    cell.innerHTML = `<strong>${subject}</strong><br><small>${code}</small>`;
+
+    if (task) {
+      const taskList = document.getElementById("taskItems");
+      const li = document.createElement("li");
+      li.textContent = task;
+      taskList.appendChild(li);
+    }
+
+    alert("履修が登録されました！");
+  }
+
+  function setSemester(season) {
+    document.getElementById("semesterTitle").textContent =
+      season === "spring" ? "春学期時間割" : "秋学期時間割";
+    document.querySelector("tbody").style.display = season === "spring" ? "table-row-group" : "none";
+    document.getElementById("autumnSchedule").style.display = season === "autumn" ? "table-row-group" : "none";
+
+	//ここに移動
+	let subs = (season == "spring") ? springSubjects : autumnSubjects;
+	for (let id in subs) {
+      const el = document.getElementById(season + "_" + id);
+      const sub = subs[id];
+      if (el) el.innerHTML = `<strong>${sub.name}</strong><br><small>${sub.code}</small>`;
+    }
+	//追加
+	updateSubjects();
+  }
+</script>
+
+</body>
+</html>
+
+
+
+
+
