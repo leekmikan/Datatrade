@@ -156,7 +156,7 @@
 </div>
 
 <script>
-  const allsubjects = [
+  let allsubjects = [
 	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 1 , "subject": "社会言語学Ａ" },
 	{ "term": "F" , "school": 0, "dep": 1 , "day": 1 , "period": 2 , "subject": "中国語入門１A" },
 	{ "term": "S" , "school": 0, "dep": 1 , "day": 1 , "period": 3 , "subject": "中国語初級１A" },
@@ -735,8 +735,8 @@
 	{ "term": "S" , "school": 0, "dep": 0 , "day": 6 , "period": 4 , "subject": "中国語入門１A" }
 ]
 
-
   //これいらない
+  /*
   const subjectData = {
     "情報理工": {
       "情報科学科": ["プログラミング基礎", "データ構造", "アルゴリズム"],
@@ -754,8 +754,9 @@
       "情報メディア学科": ["UXデザイン", "VR基礎"]
     }
   };
+  */
 
-  const springSubjects = {
+  let springSubjects = {
     mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
     mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
     mon4: { name: "プレゼンテーション", code: "JJG012" },
@@ -770,7 +771,7 @@
 
 
   //中身は変えて
-  const autumnSubjects = {
+  let autumnSubjects = {
     mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
     mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
     mon4: { name: "プレゼンテーション", code: "JJG012" },
@@ -886,6 +887,7 @@ function updateDepartments() {
 	//ここに移動
 	let subs = (season == "spring") ? springSubjects : autumnSubjects;
 	for (let id in subs) {
+	  //init()が実行できる環境かどうかで処理の変更が必要か変わるので要相談
       const el = document.getElementById(season + "_" + id);
       const sub = subs[id];
       if (el) el.innerHTML = `<strong>${sub.name}</strong><br><small>${sub.code}</small>`;
@@ -893,6 +895,24 @@ function updateDepartments() {
 	//追加
 	updateSubjects();
   }
+
+//↓が実行出来れば上の方の数百行はいらない (ローカルだとCORSエラーがでるはず(ドメイン(null)がJSONファイルにアクセスする権限がない))
+//大学側が指定した環境だと読み込めると思う
+async function init(){
+	let resp = null;
+    resp = await fetch("subjects.json");
+	//allsubjects読み込み
+    allsubjects = await resp.json();
+
+	resp = await fetch("time_table/s.json");
+	//allsubjects読み込み
+	springSubjects = await resp.json();
+
+	resp = await fetch("time_table/f.json");
+	//autumnSubjects読み込み
+	autumnSubjects = await resp.json();
+}
+init();
 </script>
 
 </body>
