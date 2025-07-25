@@ -73,6 +73,7 @@
   <label><input type="radio" name="season" value="autumn" onclick="setSemester('autumn')"> 秋学期</label>
 
   <h3>曜日・時限選択</h3>
+  <!--土曜日追加-->
   <select id="day" onchange="updateSubjects()">
     <option value="mon">月</option>
     <option value="tue">火</option>
@@ -128,25 +129,27 @@
       <th>水</th>
       <th>木</th>
       <th>金</th>
+	  <th>土</th>
     </tr>
   </thead>
   <tbody>
+	<!--土曜日追加-->
     <!-- 1〜6限 × 月〜金 -->
     <!-- 春 -->
-    <tr><th>1限</th><td id="spring_mon1"></td><td id="spring_tue1"></td><td id="spring_wed1"></td><td id="spring_thu1"></td><td id="spring_fri1"></td></tr>
-    <tr><th>2限</th><td id="spring_mon2"></td><td id="spring_tue2"></td><td id="spring_wed2"></td><td id="spring_thu2"></td><td id="spring_fri2"></td></tr>
-    <tr><th>3限</th><td id="spring_mon3"></td><td id="spring_tue3"></td><td id="spring_wed3"></td><td id="spring_thu3"></td><td id="spring_fri3"></td></tr>
-    <tr><th>4限</th><td id="spring_mon4"></td><td id="spring_tue4"></td><td id="spring_wed4"></td><td id="spring_thu4"></td><td id="spring_fri4"></td></tr>
-    <tr><th>5限</th><td id="spring_mon5"></td><td id="spring_tue5"></td><td id="spring_wed5"></td><td id="spring_thu5"></td><td id="spring_fri5"></td></tr>
-    <tr><th>6限</th><td id="spring_mon6"></td><td id="spring_tue6"></td><td id="spring_wed6"></td><td id="spring_thu6"></td><td id="spring_fri6"></td></tr>
+    <tr><th>1限</th><td id="spring_mon1"></td><td id="spring_tue1"></td><td id="spring_wed1"></td><td id="spring_thu1"></td><td id="spring_fri1"></td><td></td></tr>
+    <tr><th>2限</th><td id="spring_mon2"></td><td id="spring_tue2"></td><td id="spring_wed2"></td><td id="spring_thu2"></td><td id="spring_fri2"></td><td></td></tr>
+    <tr><th>3限</th><td id="spring_mon3"></td><td id="spring_tue3"></td><td id="spring_wed3"></td><td id="spring_thu3"></td><td id="spring_fri3"></td><td></td></tr>
+    <tr><th>4限</th><td id="spring_mon4"></td><td id="spring_tue4"></td><td id="spring_wed4"></td><td id="spring_thu4"></td><td id="spring_fri4"></td><td></td></tr>
+    <tr><th>5限</th><td id="spring_mon5"></td><td id="spring_tue5"></td><td id="spring_wed5"></td><td id="spring_thu5"></td><td id="spring_fri5"></td><td></td></tr>
+    <tr><th>6限</th><td id="spring_mon6"></td><td id="spring_tue6"></td><td id="spring_wed6"></td><td id="spring_thu6"></td><td id="spring_fri6"></td><td></td></tr>
   </tbody>
   <tbody style="display:none" id="autumnSchedule">
-    <tr><th>1限</th><td id="autumn_mon1"></td><td id="autumn_tue1"></td><td id="autumn_wed1"></td><td id="autumn_thu1"></td><td id="autumn_fri1"></td></tr>
-    <tr><th>2限</th><td id="autumn_mon2"></td><td id="autumn_tue2"></td><td id="autumn_wed2"></td><td id="autumn_thu2"></td><td id="autumn_fri2"></td></tr>
-    <tr><th>3限</th><td id="autumn_mon3"></td><td id="autumn_tue3"></td><td id="autumn_wed3"></td><td id="autumn_thu3"></td><td id="autumn_fri3"></td></tr>
-    <tr><th>4限</th><td id="autumn_mon4"></td><td id="autumn_tue4"></td><td id="autumn_wed4"></td><td id="autumn_thu4"></td><td id="autumn_fri4"></td></tr>
-    <tr><th>5限</th><td id="autumn_mon5"></td><td id="autumn_tue5"></td><td id="autumn_wed5"></td><td id="autumn_thu5"></td><td id="autumn_fri5"></td></tr>
-    <tr><th>6限</th><td id="autumn_mon6"></td><td id="autumn_tue6"></td><td id="autumn_wed6"></td><td id="autumn_thu6"></td><td id="autumn_fri6"></td></tr>
+    <tr><th>1限</th><td id="autumn_mon1"></td><td id="autumn_tue1"></td><td id="autumn_wed1"></td><td id="autumn_thu1"></td><td id="autumn_fri1"></td><td></td></tr>
+    <tr><th>2限</th><td id="autumn_mon2"></td><td id="autumn_tue2"></td><td id="autumn_wed2"></td><td id="autumn_thu2"></td><td id="autumn_fri2"></td><td></td></tr>
+    <tr><th>3限</th><td id="autumn_mon3"></td><td id="autumn_tue3"></td><td id="autumn_wed3"></td><td id="autumn_thu3"></td><td id="autumn_fri3"></td><td></td></tr>
+    <tr><th>4限</th><td id="autumn_mon4"></td><td id="autumn_tue4"></td><td id="autumn_wed4"></td><td id="autumn_thu4"></td><td id="autumn_fri4"></td><td></td></tr>
+    <tr><th>5限</th><td id="autumn_mon5"></td><td id="autumn_tue5"></td><td id="autumn_wed5"></td><td id="autumn_thu5"></td><td id="autumn_fri5"></td><td></td></tr>
+    <tr><th>6限</th><td id="autumn_mon6"></td><td id="autumn_tue6"></td><td id="autumn_wed6"></td><td id="autumn_thu6"></td><td id="autumn_fri6"></td><td></td></tr>
   </tbody>
 </table>
 
@@ -755,35 +758,40 @@
     }
   };
   */
+/* こっちの環境だと、JSONが読み込めないので、一時的に使ってる部分　提出する時に削除
+  let autumnSubjects = [
+	{"day": 1, "period": 1, "subject": "", "teacher": "", "room": ""},
+	{"day": 2, "period": 1, "subject": "", "teacher": "", "room": ""},
+	{"day": 3, "period": 1, "subject": "", "teacher": "", "room": ""},
+	{"day": 4, "period": 1, "subject": "", "teacher": "", "room": ""},
+	{"day": 5, "period": 1, "subject": "", "teacher": "", "room": ""},
+	{"day": 6, "period": 1, "subject": "", "teacher": "", "room": ""},
 
-  let springSubjects = {
-    mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
-    mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
-    mon4: { name: "プレゼンテーション", code: "JJG012" },
-    mon6: { name: "現代文明論", code: "BBA170" },
-    tue2: { name: "メディア数学C", code: "JJG011" },
-    tue3: { name: "メディアプログラミング2B", code: "JJG015" },
-    tue4: { name: "メディアコンテンツ基本講義・演習B", code: "JJG018" },
-    fri2: { name: "メディアコンテンツ基本講義・演習A", code: "JJG022" },
-    fri3: { name: "メディアプログラミング2A", code: "JJG014" },
-    fri4: { name: "社会情報概論", code: "AAM008" }
-  };
+	{"day": 1, "period": 2, "subject": "", "teacher": "", "room": ""},
+	{"day": 2, "period": 2, "subject": "AIとデータサイエンス１", "teacher": "丸山", "room": "12-307"},
+	{"day": 3, "period": 2, "subject": "メディアコンテンツA", "teacher": "茂木", "room": ""},
+	{"day": 4, "period": 2, "subject": "", "teacher": "藤川・辛島・柴田・宇津", "room": ""},
+	{"day": 5, "period": 2, "subject": "メディアコミュニケーションA", "teacher": "丸山", "room": "12-307"},
+	{"day": 6, "period": 2, "subject": "", "teacher": "", "room": ""},
 
+	{"day": 1, "period": 3, "subject": "", "teacher": "", "room": ""},
+	{"day": 2, "period": 3, "subject": "メディアコミュニケーションB", "teacher": "前田", "room": "16-505"},
+	{"day": 3, "period": 3, "subject": "", "teacher": "", "room": ""},
+	{"day": 4, "period": 3, "subject": "情報メディアプロジェクト実践２", "teacher": "藤川", "room": "6B-103"},
+	{"day": 5, "period": 3, "subject": "メディアコンテンツC", "teacher": "安本", "room": "16-402"},
+	{"day": 6, "period": 3, "subject": "", "teacher": "", "room": ""},
 
-  //中身は変えて
-  let autumnSubjects = {
-    mon1: { name: "メディアコミュニケーション基本講義・演習B", code: "JJG019" },
-    mon3: { name: "メディアコミュニケーション基本講義・演習A", code: "JJG013" },
-    mon4: { name: "プレゼンテーション", code: "JJG012" },
-    mon6: { name: "現代文明論", code: "BBA170" },
-    tue2: { name: "メディア数学C", code: "JJG011" },
-    tue3: { name: "メディアプログラミング2B", code: "JJG015" },
-    tue4: { name: "メディアコンテンツ基本講義・演習B", code: "JJG018" },
-    wed2: { name: "メディアコンテンツ基本講義・演習A", code: "JJG022" },
-    thu3: { name: "aaaaaaaa", code: "JJG014" },
-    fri4: { name: "社会情報概論", code: "AAM008" }
-  };
-
+	{"day": 1, "period": 4, "subject": "", "teacher": "", "room": ""},
+	{"day": 2, "period": 4, "subject": "理工系のTOEIC（R）入門", "teacher": "", "room": "16-503"},
+	{"day": 3, "period": 4, "subject": "　", "teacher": "", "room": ""},
+	{"day": 4, "period": 4, "subject": "メディアコンテンツB", "teacher": "柴田", "room": ""},
+	{"day": 5, "period": 4, "subject": "現代教養講義", "teacher": "", "room": ""},
+	{"day": 6, "period": 4, "subject": "", "teacher": "", "room": ""}
+];
+let springSubjects = autumnSubjects;
+*/
+let springSubjects;
+let autumnSubjects;
   //↓3つ追加
   const school_code = {
 	"情報理工": 0,
@@ -828,15 +836,6 @@
         	subjectList.appendChild(li);
 		}
 	}
-	/* ここいらない
-    if (subjectData[school_code[faculty]] && subjectData[faculty][department]) {
-      subjectData[faculty][department].forEach(sub => {
-        const li = document.createElement("li");
-        li.textContent = sub;
-        subjectList.appendChild(li);
-      });
-    }
-	*/
   }
   const facultyDepartments = {
   "情報理工": ["情報科学科", "コンピュータ応用工学科", "情報メディア学科"],
@@ -886,11 +885,12 @@ function updateDepartments() {
 
 	//ここに移動
 	let subs = (season == "spring") ? springSubjects : autumnSubjects;
-	for (let id in subs) {
-	  //init()が実行できる環境かどうかで処理の変更が必要か変わるので要相談
-      const el = document.getElementById(season + "_" + id);
-      const sub = subs[id];
-      if (el) el.innerHTML = `<strong>${sub.name}</strong><br><small>${sub.code}</small>`;
+	const el = document.getElementsByTagName("tbody")[(season == "spring") ? 0 : 1]
+	for (let sub of subs) {
+	  const row = el.getElementsByTagName("tr")[sub.period - 1]; //x座標(時限)を選択
+	  const cell = row.getElementsByTagName("td")[sub.day - 1]; //y座標(曜日)も選択
+	  //科目コードがないので教員名に置き換えました
+      cell.innerHTML = `<strong>${sub.subject}</strong><br><small>${sub.teacher}</small>`;
     }
 	//追加
 	updateSubjects();
